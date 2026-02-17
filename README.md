@@ -1,15 +1,16 @@
 # LatteRenderer
 
-This module renders your Processwire pages using [Latte](https://latte.nette.org/).
+ProcessWire module that renders pages using [Latte](https://latte.nette.org/) templates.
 
 > Latte must be installed via Composer in your project.
 
 ## Why use this?
 
-If you want Latte syntax on ProcessWire, this gives you a clean bridge with:
+Clean integration of Latte syntax in ProcessWire with:
 
 - Full page rendering with layout inheritance
-- Optional block rendering for partial responses
+- Optional block rendering for partial responses (AJAX, Datastar, htmx, etc.)
+- Automatic fallback to `.php` templates when no `.latte` template exists
 
 ## Install
 
@@ -27,11 +28,13 @@ Download and unzip to `/site/modules/LatteRenderer/`, then install via ProcessWi
 
 The module creates a `_latte.php` bridge in `/site/templates/`.
 
-That file routes all template rendering to Latte, so `home` uses `home.latte` instead of `home.php`.
+When a page is rendered:
+- If a `.latte` template exists (e.g., `home.latte`), it's used
+- If not, ProcessWire uses the default `.php` template (e.g., `home.php`)
 
 Note: `_latte.php` is auto-generated and overwritten on module updates.
 
-Defaults:
+**Defaults:**
 
 - Layout: `layouts/html.latte`
 - Templates directory: `pages/`
@@ -40,7 +43,7 @@ Both paths are relative to `/site/templates` unless you pass an absolute path.
 
 ## Configuration
 
-You can set config in `config.php` or in the module UI.
+Set config in `config.php` or in the module UI.
 
 ```php
 $config->LatteRenderer = [
@@ -68,10 +71,28 @@ $config->LatteRenderer = [
 <?php
 namespace ProcessWire;
 
-/** @var LatteRenderer $latte */
 $latte = $modules->get('LatteRenderer');
+if ($latte) {
+  return $latte->renderPage($page);
+}
+```
 
-return $latte->renderPage($page);
+The module handles checking for template existence and fallback automatically.
+
+### Integration in Page classes
+
+```php
+<?php
+namespace ProcessWire;
+
+class DefaultPage extends Page {
+  public function ___render($options = [], $options2 = null) {
+    $latte = $this->wire('modules')->get('LatteRenderer');
+    
+    // Try Latte, fall back to ProcessWire's default if no .latte template exists
+    return $latte->renderPage($this) ?? parent::___render($options, $options2);
+  }
+}
 ```
 
 ### Add global params
@@ -89,7 +110,7 @@ $latte->setGlobalParams([
 return $latte->renderPage($page);
 ```
 
-### Render blocks
+### Render blocks (for AJAX, Datastar, htmx, etc.)
 
 ```php
 $latte = $this->modules->get('LatteRenderer');
@@ -111,8 +132,11 @@ $wire->addHookAfter('LatteRenderer::buildPageScope', function($event) {
 
 ## API reference
 
-### `renderPage(Page $page): string`
-Renders full page with layout. Admin templates are bypassed.
+### `renderPage(Page $page): ?string`
+Renders full page with layout. Returns `null` when no Latte template exists (signals fallback to ProcessWire's default PHP template). Admin templates are bypassed.
+
+### `hasLatteTemplate(string $templateName): bool`
+Check if a Latte template exists for a given template name.
 
 ### `renderBlocks(Page $page, array $blockNames): string`
 Renders one or more Latte blocks from the page template.
@@ -124,19 +148,21 @@ Builds the default ProcessWire scope (hookable).
 Sets global params passed to every template.
 
 
-## Quick how-to
+## Quick setup
 
 1. Install Latte via Composer: `composer require latte/latte`
 2. Install this module in ProcessWire admin.
-3. Choose one rendering path:
+3. Choose one rendering approach:
 
-a. Set your templates to use `_latte.php` as the template file 
-(Admin > Setup > Templates > [Your Template] > "Alternative Template file name" = "_latte.php")
+### Option A: Use _latte.php (automatic)
 
-Tip: be sure to check the `Disable automatic append of file: _main.php` checkbox.
+Set your templates to use `_latte.php` as the template file:
+- Admin > Setup > Templates > [Your Template] > "Alternative Template file name" = "_latte.php"
+- Check "Disable automatic append of file: _main.php"
 
+Now all pages using that template will use Latte when a `.latte` file exists, or fall back to `.php` when it doesn't.
     
-b. Or skip that and hook rendering in your page class (explicit and flexible)
+### Option B: Use in Page classes (explicit)
 
 ```php
 <?php
@@ -146,15 +172,18 @@ namespace ProcessWire;
 class DefaultPage extends Page {
   public function ___render($options = [], $options2 = null) {
     $latte = $this->wire('modules')->get('LatteRenderer');
-
-    // Your logic here (optional)
-
-    return $latte->renderPage($this);
+    
+    // Your custom logic here (optional)
+    
+    // Try Latte, fall back to ProcessWire's default
+    return $latte->renderPage($this) ?? parent::___render($options, $options2);
   }
 }
-```  
+```
 
-4. Create a layout file at `site/templates/layouts/html.latte` with a basic HTML and a content block.
+## Template examples
+
+Create a layout file at `site/templates/layouts/html.latte` with a basic HTML structure:
 
 ```html
 <!DOCTYPE html>
@@ -173,7 +202,7 @@ class DefaultPage extends Page {
 </html>
 ```
 
-5. Create `home.latte` in your templates folder with a simple block.
+Create page templates in `site/templates/pages/` (e.g., `home.latte`):
 
 ```latte
 {block content}
@@ -182,7 +211,7 @@ class DefaultPage extends Page {
 {/block}
 ```
 
-That's it. Coffee is ready.
+That's it. Your page will use Latte templates when they exist, and fall back to `.php` templates when they don't.
 
 
 ## Requirements

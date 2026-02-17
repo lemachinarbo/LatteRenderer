@@ -91,6 +91,26 @@ class LatteEngine
   }
 
   /**
+   * Check if a Latte template exists for the given template name.
+   *
+   * @param string $template Template name
+   * @return bool True if template or default.latte exists
+   */
+  public function hasTemplate(string $template): bool
+  {
+    $pagesDir = rtrim($this->pagesDir, '/') . '/';
+    if (!$pagesDir) {
+      return false;
+    }
+    $file = $pagesDir . $template . '.latte';
+    if (is_readable($file)) {
+      return true;
+    }
+    $default = $pagesDir . 'default.latte';
+    return is_readable($default);
+  }
+
+  /**
    * Find the appropriate template file for rendering.
    *
    * @param string $template Template name
