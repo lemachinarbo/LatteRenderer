@@ -84,10 +84,19 @@ class LatteEngine
     }
 
     $latteFile = $this->findTemplate($template);
+    $this->renderTemplateFile($latteFile, $vars);
+  }
 
+  /**
+   * Render a specific Latte template file.
+   *
+   * @param string $file Path to the template file
+   * @param array $vars All template variables
+   */
+  public function renderTemplateFile(string $file, array $vars): void
+  {
     $params = $this->mergeParams($vars);
-
-    $this->latte->render($latteFile, $params);
+    $this->latte->render($file, $params);
   }
 
   /**
@@ -98,16 +107,33 @@ class LatteEngine
    */
   public function hasTemplate(string $template): bool
   {
+    return $this->getTemplatePath($template) !== null;
+  }
+
+  /**
+   * Get the path to a Latte template file if it exists.
+   *
+   * @param string $template Template name
+   * @return string|null Path to the template file or null if not found
+   */
+  public function getTemplatePath(string $template): ?string
+  {
     $pagesDir = rtrim($this->pagesDir, '/') . '/';
     if (!$pagesDir) {
-      return false;
+      return null;
     }
+
     $file = $pagesDir . $template . '.latte';
     if (is_readable($file)) {
-      return true;
+      return $file;
     }
+
     $default = $pagesDir . 'default.latte';
-    return is_readable($default);
+    if (is_readable($default)) {
+      return $default;
+    }
+
+    return null;
   }
 
   /**
@@ -119,21 +145,9 @@ class LatteEngine
    */
   private function findTemplate(string $template): string
   {
-    // Use provided pagesDir
-    $pagesDir = rtrim($this->pagesDir, '/') . '/';
-    if (!$pagesDir) {
-      throw new \RuntimeException(
-        'No pagesDir configured.',
-      );
-    }
-    $file = $pagesDir . $template . '.latte';
-    if (is_readable($file)) {
+    $file = $this->getTemplatePath($template);
+    if ($file) {
       return $file;
-    }
-
-    $default = $pagesDir . 'default.latte';
-    if (is_readable($default)) {
-      return $default;
     }
 
     throw new \RuntimeException("Latte template not found for '{$template}'.");
@@ -208,6 +222,20 @@ class LatteEngine
   {
     ob_start();
     $this->render($vars);
+    return (string) ob_get_clean();
+  }
+
+  /**
+   * Render a specific Latte template file to a string.
+   *
+   * @param string $file Path to the template file
+   * @param array $vars All template variables
+   * @return string Rendered HTML
+   */
+  public function renderTemplateFileToString(string $file, array $vars): string
+  {
+    ob_start();
+    $this->renderTemplateFile($file, $vars);
     return (string) ob_get_clean();
   }
 

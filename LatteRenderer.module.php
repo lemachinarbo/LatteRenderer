@@ -229,13 +229,14 @@ if ($latte) {
       return $page->___renderPage();
     }
 
-    // Check if Latte template exists
-    if (!$this->hasLatteTemplate($page->template->name)) {
+    // Check if Latte template exists and get its path
+    $templatePath = $this->getEngine()->getTemplatePath($page->template->name);
+    if (!$templatePath) {
       return null; // No template, signal fallback to ProcessWire's default
     }
 
     $vars = $this->buildPageScope($page);
-    return $this->getEngine()->renderToString($vars);
+    return $this->getEngine()->renderTemplateFileToString($templatePath, $vars);
   }
 
   /**
