@@ -98,6 +98,10 @@ class LatteEngine
    */
   public function hasTemplate(string $template): bool
   {
+    if (!$template || !preg_match('/^[a-zA-Z0-9_-]+$/', $template)) {
+      return false;
+    }
+
     $pagesDir = rtrim($this->pagesDir, '/') . '/';
     if (!$pagesDir) {
       return false;
