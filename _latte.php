@@ -11,6 +11,7 @@
  */
 
 namespace ProcessWire;
+if(!defined("PROCESSWIRE")) die();
 
 $latte = $modules->get('LatteRenderer');
 if ($latte) {
