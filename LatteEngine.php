@@ -118,6 +118,10 @@ class LatteEngine
    */
   public function getTemplatePath(string $template): ?string
   {
+    if (!$template || !preg_match('/^[a-zA-Z0-9_-]+$/', $template)) {
+      return null;
+    }
+
     $pagesDir = rtrim($this->pagesDir, '/') . '/';
     if (!$pagesDir) {
       return null;
