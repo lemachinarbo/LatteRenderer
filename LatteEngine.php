@@ -245,14 +245,6 @@ class LatteEngine
 
   /**
    * Render a specific Latte block from a template file and return as string.
-   *
-   * @param string $file Path to the Latte file
-   * @param array $vars Variables to pass to the template
-   * @param string $blockName Name of the Latte block to render
-   * @return string Rendered block HTML
-   */
-  /**
-   * Render a specific Latte block from a template file and return as string.
    * Uses the same Latte engine instance and param merging as the rest of LatteRenderer.
    *
    * @param string $file Path to the Latte file

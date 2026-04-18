@@ -117,6 +117,7 @@ class LatteRenderer extends WireData implements Module, ConfigurableModule
  */
 
 namespace ProcessWire;
+if(!defined("PROCESSWIRE")) die();
 
 $latte = $modules->get(\'LatteRenderer\');
 if ($latte) {
