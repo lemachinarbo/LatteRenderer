@@ -1,1 +1,13 @@
-{ "packages": { ".": { "release-type": "php" } } }
+{
+	"packages": {
+		".": {
+			"release-type": "php",
+			"extra-files": [
+				{
+					"type": "generic",
+					"path": "LatteRenderer.module.php"
+				}
+			]
+		}
+	}
+}
