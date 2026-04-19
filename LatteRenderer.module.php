@@ -56,7 +56,7 @@ class LatteRenderer extends WireData implements Module, ConfigurableModule
     return [
       'title' => 'Latte Template Renderer',
       'summary' => 'Latte template engine integration for ProcessWire',
-      'version' => '0.0.2', // x-release-please-version
+      'version' => '0.1.0', // x-release-please-version
       'author' => 'Lemachi Narbo',
       'autoload' => true,
       'singular' => true,
